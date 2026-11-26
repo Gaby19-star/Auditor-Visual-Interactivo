@@ -3,8 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#091829">
-  <meta name="color-scheme" content="dark">
   <title>Auditor Visual Interactivo · Accesibilidad Web & Contraste</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,9 +77,10 @@
         <div class="research-card-clay animate-fade-in-up delay-2">
           <div class="research-icon">⚙️</div>
           <h3>Simulación Espectral</h3>
-          <p>Mediante matrices de transformación (Vienot y Machado), el sistema reproduce con precisión clínica cómo perciben las tonalidades los usuarios con Protanopía, Deuteranopía y Tritanopía.</p>
+          <p>Mediante matrices de transformación (Machado et al., 2009, en RGB lineal), el sistema aproxima cómo perciben las tonalidades los usuarios con Protanopía, Deuteranopía y Tritanopía.</p>
         </div>
       </div>
+
     </section>
 
 
@@ -199,6 +198,7 @@
               <div class="preview-main-text">Texto de Ejemplo (16px)</div>
               <div class="preview-sub-text">¿Puedes leer esto con facilidad?</div>
             </div>
+<div id="pairSim" class="pair-sim" aria-live="polite" aria-label="Tu par de colores bajo cada tipo de daltonismo"></div>
 
             <div class="flex-gap-sm">
               <button id="btnAutoFix" class="clay-pill-btn btn-full-center">
@@ -303,6 +303,12 @@
 
   </div>
 
+  <div class="mascot-wrap">
+    <div id="mascotBubble" class="mascot-bubble" role="status" aria-live="polite"></div>
+    <button id="mascot" class="mascot" aria-label="Asistente: toca para ver un consejo"><img src="assets/mascota.png" alt="" width="331" height="420"></button>
+  </div>
+  <button id="sfxToggle" class="sfx-toggle" aria-pressed="true" aria-label="Sonido activado. Pulsa para silenciar">🔊</button>
+  <button id="musicToggle" class="sfx-toggle" aria-pressed="true" aria-label="Música de fondo activada. Pulsa para silenciar">🎵</button>
   <nav class="clay-dock-wrap" aria-label="Navegación principal">
     <div class="clay-dock">
       <button class="dock-btn active" data-target="view-home" data-tooltip="Inicio" aria-label="Inicio">

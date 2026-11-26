@@ -49,27 +49,125 @@ navSwitchButtons.forEach(btn => {
 
 
 const COLOR_MATRICES = {
-  prot: [
-    [0.56667, 0.43333, 0.00000],
-    [0.55833, 0.44167, 0.00000],
-    [0.00000, 0.24167, 0.75833]
-  ],
-  deut: [
-    [0.62500, 0.37500, 0.00000],
-    [0.70000, 0.30000, 0.00000],
-    [0.00000, 0.30000, 0.70000]
-  ],
-  trit: [
-    [0.95000, 0.05000, 0.00000],
-    [0.00000, 0.43333, 0.56667],
-    [0.00000, 0.47500, 0.52500]
-  ],
-  achro: [
-    [0.29900, 0.58700, 0.11400],
-    [0.29900, 0.58700, 0.11400],
-    [0.29900, 0.58700, 0.11400]
-  ]
+  prot: [[0.152286,1.052583,-0.204868],[0.114503,0.786281,0.099216],[-0.003882,-0.048116,1.051998]],
+  deut: [[0.367322,0.860646,-0.227968],[0.280085,0.672501,0.047413],[-0.011820,0.042940,0.968881]],
+  trit: [[1.255528,-0.076749,-0.178779],[-0.078411,0.930809,0.147602],[0.004733,0.691367,0.303900]],
+  achro: [[0.299,0.587,0.114],[0.299,0.587,0.114],[0.299,0.587,0.114]]
 };
+const LINEAR_MODES = { prot: 1, deut: 1, trit: 1 };
+const LIN = Float32Array.from({ length: 256 }, (_, i) => { const c = i / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+const toSRGB = v => { v = Math.min(1, Math.max(0, v)); return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
+
+// ---- Sonido sintetizado (Web Audio, sin archivos) ----
+let sfxOn = true, actx, lastPass = null;
+function tone(f, d = 0.09, type = 'sine', v = 0.06, when = 0) {
+  if (!sfxOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime + when, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + d);
+  } catch (e) {}
+}
+const SFX = {
+  click: () => tone(520, 0.07, 'triangle'),
+  nav:   () => { tone(392, 0.08); tone(587, 0.12, 'sine', 0.06, 0.07); },
+  pass:  () => { tone(523, 0.1); tone(659, 0.1, 'sine', 0.06, 0.09); tone(784, 0.2, 'sine', 0.06, 0.18); },
+  fail:  () => { tone(220, 0.18, 'sawtooth', 0.04); tone(165, 0.26, 'sawtooth', 0.04, 0.12); }
+};
+document.addEventListener('click', e => {
+  if (e.target.closest('#sfxToggle, #musicToggle, #mascot')) return;
+  if (e.target.closest('.dock-btn')) SFX.nav(); else if (e.target.closest('button')) SFX.click();
+});
+const sfxBtn = document.getElementById('sfxToggle');
+if (sfxBtn) sfxBtn.addEventListener('click', () => {
+  sfxOn = !sfxOn;
+  sfxBtn.setAttribute('aria-pressed', String(sfxOn));
+  sfxBtn.textContent = sfxOn ? '🔊' : '🔇';
+  sfxBtn.setAttribute('aria-label', sfxOn ? 'Sonido activado. Pulsa para silenciar' : 'Sonido desactivado. Pulsa para activar');
+  SFX.click();
+});
+
+// ---- Música de fondo suave (pad sintetizado) ----
+let musicOn = true, amb = null, ducked = false;
+const AMB_VOL = 0.05;
+function ambTarget() { return musicOn && !ducked ? AMB_VOL : 0; }
+function fadeAmb(sec) { if (amb) { amb.gain.cancelScheduledValues(actx.currentTime); amb.gain.linearRampToValueAtTime(ambTarget(), actx.currentTime + sec); } }
+function startAmbient() {
+  if (amb || !musicOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const master = actx.createGain(); master.gain.value = 0; master.connect(actx.destination);
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(master);
+    [130.81, 196.0, 261.63, 329.63].forEach((f, i) => {
+      const o = actx.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.detune.value = (i - 1.5) * 4;
+      const g = actx.createGain(); g.gain.value = 0.25;
+      const lfo = actx.createOscillator(); lfo.frequency.value = 0.05 + i * 0.02;
+      const lg = actx.createGain(); lg.gain.value = 0.12; lfo.connect(lg).connect(g.gain);
+      o.connect(g).connect(lp); o.start(); lfo.start();
+    });
+    amb = master; fadeAmb(4);
+  } catch (e) {}
+}
+['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, startAmbient, { once: true }));
+// al reproducir un video, la música baja sola
+document.addEventListener('play', e => { if (e.target.tagName === 'VIDEO') { ducked = true; fadeAmb(0.8); } }, true);
+['pause', 'ended'].forEach(ev => document.addEventListener(ev, e => { if (e.target.tagName === 'VIDEO') { ducked = false; fadeAmb(1.5); } }, true));
+const musicBtn = document.getElementById('musicToggle');
+if (musicBtn) musicBtn.addEventListener('click', () => {
+  musicOn = !musicOn;
+  musicBtn.setAttribute('aria-pressed', String(musicOn));
+  musicBtn.setAttribute('aria-label', musicOn ? 'Música de fondo activada. Pulsa para silenciar' : 'Música de fondo desactivada. Pulsa para activar');
+  if (musicOn && !amb) startAmbient(); else fadeAmb(1.2);
+});
+
+// ---- Mascota: consejos por sección ----
+const TIPS = {
+  'view-home': '¿Sabías que cerca de 1 de cada 12 hombres tiene daltonismo? Diseña pensando en todos.',
+  'view-simulador': 'Mueve el control para comparar la imagen original con la simulada.',
+  'view-wcag': 'Para texto normal, WCAG AA pide un contraste de al menos 4.5:1.',
+  'view-guiones': 'Dale play: la música de fondo baja sola mientras ves el video.'
+};
+const mascot = document.getElementById('mascot'), bubble = document.getElementById('mascotBubble');
+let bubbleTimer;
+function mascotSay(id) {
+  if (!bubble) return;
+  bubble.textContent = TIPS[id] || TIPS['view-home'];
+  bubble.classList.add('show');
+  clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => bubble.classList.remove('show'), 5500);
+}
+if (mascot) {
+  mascot.addEventListener('click', () => {
+    const v = document.querySelector('.clay-section-view.active');
+    tone(300, 0.08, 'sine', 0.07); tone(620, 0.14, 'sine', 0.07, 0.06);
+    mascot.classList.remove('jump'); void mascot.offsetWidth; mascot.classList.add('jump');
+    mascotSay(v && v.id);
+  });
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.dock-btn');
+    if (b) setTimeout(() => mascotSay(b.dataset.target), 350);
+  });
+  setTimeout(() => mascotSay('view-home'), 1600);
+}
+
+// ---- Par de colores bajo cada tipo de daltonismo ----
+function simHex(hex, m) {
+  const c = [1, 3, 5].map(i => LIN[parseInt(hex.substr(i, 2), 16)]);
+  return '#' + m.map(r => Math.round(toSRGB(r[0] * c[0] + r[1] * c[1] + r[2] * c[2])).toString(16).padStart(2, '0')).join('');
+}
+function renderPairSim() {
+  const box = document.getElementById('pairSim');
+  if (!box) return;
+  const names = { prot: 'Protanopía', deut: 'Deuteranopía', trit: 'Tritanopía' };
+  box.innerHTML = Object.keys(names).map(k => {
+    const f = simHex(fgColorInput.value, COLOR_MATRICES[k]), g = simHex(bgColorInput.value, COLOR_MATRICES[k]);
+    const r = getContrastRatio(f, g);
+    return `<div class="pair-cell" style="color:${f};background:${g}">Aa<small>${names[k]} ${r.toFixed(2)}:1 ${r >= 4.5 ? '✓' : '✕'}</small></div>`;
+  }).join('');
+}
 
 const CSS_EFFECTS = {
   low: 'blur(5px) contrast(0.75) brightness(0.95)',
@@ -107,13 +205,15 @@ function renderSimulation() {
   if (COLOR_MATRICES[currentMode]) {
     const mat = COLOR_MATRICES[currentMode];
     const len = pixels.length;
+    const lm = LINEAR_MODES[currentMode];
     for (let i = 0; i < len; i += 4) {
-      const r = pixels[i];
-      const g = pixels[i + 1];
-      const b = pixels[i + 2];
-      pixels[i]     = mat[0][0] * r + mat[0][1] * g + mat[0][2] * b;
-      pixels[i + 1] = mat[1][0] * r + mat[1][1] * g + mat[1][2] * b;
-      pixels[i + 2] = mat[2][0] * r + mat[2][1] * g + mat[2][2] * b;
+      let r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+      if (lm) { r = LIN[r]; g = LIN[g]; b = LIN[b]; }
+      let R = mat[0][0] * r + mat[0][1] * g + mat[0][2] * b;
+      let G = mat[1][0] * r + mat[1][1] * g + mat[1][2] * b;
+      let B = mat[2][0] * r + mat[2][1] * g + mat[2][2] * b;
+      if (lm) { R = toSRGB(R); G = toSRGB(G); B = toSRGB(B); }
+      pixels[i] = R; pixels[i + 1] = G; pixels[i + 2] = B;
     }
   }
 
@@ -126,6 +226,9 @@ function renderSimulation() {
   aCtx.drawImage(offscreenCanvas, 0, 0);
   aCtx.filter = 'none';
 
+  beforeCanvas.setAttribute('role', 'img'); beforeCanvas.setAttribute('aria-label', 'Imagen original');
+  afterCanvas.setAttribute('role', 'img'); afterCanvas.setAttribute('aria-label', 'Imagen con simulación: ' + CONDITION_LABELS[currentMode]);
+  afterCanvas.classList.remove('swap'); void afterCanvas.offsetWidth; afterCanvas.classList.add('swap');
   if (conditionTag) {
     conditionTag.textContent = CONDITION_LABELS[currentMode];
   }
@@ -360,6 +463,11 @@ function calculateContrast() {
   currentRatio = ratio;
 
   ratioValEl.textContent = ratio.toFixed(2) + ':1';
+  ratioValEl.classList.remove('bump'); void ratioValEl.offsetWidth; ratioValEl.classList.add('bump');
+  const okNow = ratio >= 4.5;
+  if (lastPass !== null && lastPass !== okNow) SFX[okNow ? 'pass' : 'fail']();
+  lastPass = okNow;
+  renderPairSim();
 
   previewBox.style.color = fg;
   previewBox.style.backgroundColor = bg;
@@ -422,8 +530,10 @@ function calculateContrast() {
 
 function updateBadge(badge, isPass) {
   if (!badge) return;
-  badge.textContent = isPass ? 'Pass' : 'Fail';
+  const s = badge.querySelector('.badge-status');
+  if (s) s.textContent = isPass ? '✓' : '✕';
   badge.className = 'status-badge ' + (isPass ? 'status-pass' : 'status-fail');
+  void badge.offsetWidth; badge.classList.add('pop');
 }
 
 function syncColor(inputColor, inputHex) {
