@@ -259,37 +259,36 @@
     
     <section class="clay-section-view" id="view-guiones">
       <div class="clay-section-card">
-        
+
         <div class="clay-tab-header">
           <h2 class="clay-section-title">
-            Guiones & Producción Audiovisual
+            Producción Audiovisual
           </h2>
-          <span class="clay-tab-badge">Sincronización de Noticiero y Documental</span>
+          <span class="clay-tab-badge">Noticiero y Documental</span>
         </div>
 
-        <div class="scripts-tabs-clay">
-          <button id="tabNews" class="script-tab-btn active" aria-selected="true">
-            📺 Cápsula Noticiero (2:30 min)
+        <div class="scripts-tabs-clay" role="tablist">
+          <button id="tabDoc" class="script-tab-btn active" role="tab" aria-selected="true" aria-controls="panelDoc">
+            🎬 Mini Documental
           </button>
-          <button id="tabDoc" class="script-tab-btn" aria-selected="false">
-            🎬 Mini Documental (4:00 min)
+          <button id="tabNews" class="script-tab-btn" role="tab" aria-selected="false" aria-controls="panelNews">
+            📺 Cápsula Noticiero
           </button>
         </div>
 
-        <div id="scriptContent" class="script-cards-flow"></div>
+        <div id="panelDoc" class="video-panel active" role="tabpanel" aria-labelledby="tabDoc">
+          <video id="videoDoc" class="video-stage" controls playsinline preload="metadata">
+            <source src="assets/daltonismo.mp4" type="video/mp4">
+            Tu navegador no puede reproducir este video.
+          </video>
+        </div>
 
-        <div class="clay-bubble-card mt-lg">
-          <h4>Previsualización de Video Local</h4>
-          <p>Carga el archivo MP4/WebM de tu pieza audiovisual para cotejarlo en tiempo real con el minutaje del guion.</p>
-          
-          <div class="video-controls-row">
-            <label class="clay-pill-btn" for="videoFile">
-              <span>Seleccionar Archivo de Video</span>
-            </label>
-            <input type="file" id="videoFile" accept="video/*" class="u-hidden">
-          </div>
-
-          <video id="videoPlayer" class="video-preview" controls></video>
+        <div id="panelNews" class="video-panel" role="tabpanel" aria-labelledby="tabNews">
+          <video id="videoNews" class="video-stage" controls playsinline preload="metadata">
+            <source src="assets/documental-h264.mp4" type="video/mp4">
+            <source src="assets/documental.mp4" type="video/mp4">
+            Tu navegador no puede reproducir este video.
+          </video>
         </div>
 
       </div>
@@ -327,7 +326,7 @@
         </svg>
       </button>
 
-      <button class="dock-btn" data-target="view-guiones" data-tooltip="Guiones y Videos" aria-label="Guiones y Videos">
+      <button class="dock-btn" data-target="view-guiones" data-tooltip="Videos" aria-label="Videos">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m22 8-6 4 6 4V8Z"></path>
           <rect width="14" height="12" x="2" y="6" rx="2" ry="2"></rect>
@@ -340,6 +339,7 @@
   <div class="toast" id="toastMessage"></div>
 
   
+  <script src="default-image.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -484,72 +484,30 @@ btnAutoFix.addEventListener('click', () => {
 });
 
 
-const SCRIPTS = {
-  news: [
-    { time: '0:00 a 0:20', title: 'Titular · ¿Tu web es invisible?', text: 'A cámara con fondo azul #006199 y rótulo animado: «Buenas noches. En Multimedia Noticias: ¿y si la página que diseñaste no la puede leer 1 de cada 12 hombres? Cerca del 8% de los hombres tiene daltonismo y la mayoría de las webs nunca se prueban para ellos».' },
-    { time: '0:20 a 1:00', title: 'Reportaje · Pantalla Dividida', text: 'A la izquierda web normal con botón "Eliminar" rojo y "Guardar" verde. A la derecha, con protanopía, ambos botones se ven idénticos. Cierra con texto gris claro sobre fondo blanco (#8A8A8A) que se vuelve ilegible.' },
-    { time: '1:00 a 1:40', title: 'Demo · Auditor Visual Interactivo', text: 'Grabación de pantalla del Auditor Visual. Cargas la imagen de ejemplo, eliges protanopía y mueves el slider. Luego cambias a deuteranopía, tritanopía, baja visión y fatiga visual.' },
-    { time: '1:40 a 2:10', title: 'Solución · Medidor WCAG 2.1', text: 'Se ve el gris #8A8A8A sobre blanco con 3.45:1 y Fail. Se ajusta a #595959, la barra de la gráfica sube y aparece Pass cumpliendo nivel AAA.' },
-    { time: '2:10 a 2:30', title: 'Cierre · Conclusión Inclusiva', text: 'A cámara con el logo del proyecto: «Diseñar con buen contraste y sin depender solo del color no es un detalle: es lograr que la web funcione para todos. Buenas noches».' }
-  ],
-  doc: [
-    { time: '0:00 a 0:30', title: 'Apertura · Ver el mundo distinto', text: 'Planos cerrados de semáforos, frutas, mapas y botones de una app pasando por filtro de protanopía. El daltonismo afecta al 8% de los hombres y a menos del 1% de las mujeres.' },
-    { time: '0:30 a 1:45', title: 'Testimonio · Experiencia de Usuario', text: 'Entrevista a persona con daltonismo describiendo confusiones habituales en apps y webs. Muestra de cómo el simulador visualiza lo que el usuario describe.' },
-    { time: '1:45 a 2:45', title: 'Experimento · Auditoría de Sitio Real', text: 'Capturas de una página real analizadas con cada filtro, marcando con círculo amarillo #FFD444 los avisos de error y éxito que dejan de distinguirse.' },
-    { time: '2:45 a 3:30', title: 'Historia · De Ishihara al W3C', text: 'Línea de tiempo animada: John Dalton (1798), láminas de Shinobu Ishihara (1917) y directrices WCAG del W3C (1999 y 2.1 de 2018) con el umbral 4.5:1.' },
-    { time: '3:30 a 4:00', title: 'Cierre · Diseño Responsable', text: '«Ver distinto no es un problema de las personas: es un problema del diseño que no las tuvo en cuenta. Con herramientas como el Auditor Visual, cualquier diseñador puede comprobarlo antes de publicar».' }
-  ]
-};
-
 const tabNews = $('tabNews');
 const tabDoc  = $('tabDoc');
-const scriptContainer = $('scriptContent');
+const panelNews = $('panelNews');
+const panelDoc  = $('panelDoc');
+const videoNews = $('videoNews');
+const videoDoc  = $('videoDoc');
 
-function renderScript(type) {
-  if (!scriptContainer) return;
-  const steps = SCRIPTS[type] || [];
-  scriptContainer.innerHTML = steps.map(s => 
-    '<div class="step-card">' +
-      '<div class="step-time">' + s.time + '</div>' +
-      '<div class="step-title">' + s.title + '</div>' +
-      '<div class="step-text">' + s.text + '</div>' +
-    '</div>'
-  ).join('');
+function showVideoTab(which) {
+  const isNews = which === 'news';
+  tabNews.classList.toggle('active', isNews);
+  tabNews.setAttribute('aria-selected', String(isNews));
+  tabDoc.classList.toggle('active', !isNews);
+  tabDoc.setAttribute('aria-selected', String(!isNews));
+  panelNews.classList.toggle('active', isNews);
+  panelDoc.classList.toggle('active', !isNews);
+  (isNews ? videoDoc : videoNews).pause();
 }
 
 if (tabNews && tabDoc) {
-  tabNews.addEventListener('click', () => {
-    tabNews.classList.add('active');
-    tabNews.setAttribute('aria-selected', 'true');
-    tabDoc.classList.remove('active');
-    tabDoc.setAttribute('aria-selected', 'false');
-    renderScript('news');
-  });
-
-  tabDoc.addEventListener('click', () => {
-    tabDoc.classList.add('active');
-    tabDoc.setAttribute('aria-selected', 'true');
-    tabNews.classList.remove('active');
-    tabNews.setAttribute('aria-selected', 'false');
-    renderScript('doc');
-  });
+  tabNews.addEventListener('click', () => showVideoTab('news'));
+  tabDoc.addEventListener('click', () => showVideoTab('doc'));
 }
 
-const videoFileInput = $('videoFile');
-const videoPlayer    = $('videoPlayer');
-
-if (videoFileInput && videoPlayer) {
-  videoFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    videoPlayer.src = URL.createObjectURL(file);
-    videoPlayer.style.display = 'block';
-    videoPlayer.load();
-    showToast('Video cargado en el reproductor');
-  });
-}
-
-function loadDefaultCanvasPlaceholder() {
+function loadFallbackPlaceholder() {
   const c = document.createElement('canvas');
   c.width = CW; c.height = CH;
   const ctx = c.getContext('2d');
@@ -571,10 +529,19 @@ function loadDefaultCanvasPlaceholder() {
   drawFittedImage(c);
 }
 
+function loadDefaultImage() {
+  const img = new Image();
+  img.onload = () => {
+    activeImage = img;
+    drawFittedImage(img);
+  };
+  img.onerror = loadFallbackPlaceholder;
+  img.src = DEFAULT_IMAGE_SRC;
+}
+
 function initApp() {
   calculateContrast();
-  renderScript('news');
-  loadDefaultCanvasPlaceholder();
+  loadDefaultImage();
   applySplit(50);
 }
 
