@@ -919,7 +919,7 @@ body::before { content: ""; position: fixed; inset: -20%; z-index: -1; pointer-e
               radial-gradient(45% 40% at 60% 15%, rgba(0,97,153,.30), transparent 70%);
   animation: drift 26s ease-in-out infinite alternate; }
 @keyframes drift { from { transform: translate3d(-3%, -2%, 0) scale(1); } to { transform: translate3d(4%, 3%, 0) scale(1.12); } }
-@keyframes dockIn { from { opacity: 0; transform: translateY(46px); } to { opacity: 1; transform: none; } }
+@keyframes dockIn { from { opacity: 0; transform: translateX(-50%) translateY(46px); } to { opacity: 1; transform: translateX(-50%); } }
 @keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,212,68,.55); } 50% { box-shadow: 0 0 0 9px rgba(255,212,68,0); } }
 @keyframes wiggle { 0% { transform: rotate(0); } 30% { transform: rotate(-14deg) scale(1.15); } 60% { transform: rotate(10deg) scale(1.1); } 100% { transform: none; } }
 .clay-dock-wrap { animation: dockIn .8s .25s cubic-bezier(.2,.8,.2,1) both; }
@@ -950,3 +950,313 @@ body::before { content: ""; position: fixed; inset: -20%; z-index: -1; pointer-e
 .mascot-bubble { max-width: 220px; margin: 0 6px 10px 0; padding: .65rem .85rem; border-radius: 16px 16px 4px 16px; background: #fff; color: #052338; font-size: .8rem; font-weight: 600; line-height: 1.4; box-shadow: var(--clay-shadow-md); opacity: 0; transform: translateY(8px) scale(.9); transform-origin: 100% 100%; transition: opacity .3s ease, transform .3s ease; pointer-events: none; }
 .mascot-bubble.show { opacity: 1; transform: none; }
 @media (max-width: 600px) { .mascot-wrap { display: none; } }
+
+/* Responsive layouts for phones, tablets and small laptops */
+@media (max-width: 1024px) {
+  .clay-app-container {
+    max-width: 100%;
+  }
+
+  .clay-hero-card,
+  .clay-section-card {
+    padding: 1.75rem;
+  }
+}
+
+@media (max-width: 820px) {
+  body {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .clay-app-container {
+    padding: max(1rem, env(safe-area-inset-top)) 1rem calc(2.5rem + env(safe-area-inset-bottom));
+  }
+
+  .clay-section-view.active {
+    gap: 1.25rem;
+  }
+
+  .clay-section-view {
+    padding-bottom: 5.5rem;
+  }
+
+  .clay-tab-header {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .clay-title-offset {
+    margin-left: 48px;
+  }
+
+  .clay-corner-3d {
+    left: 18px;
+  }
+
+  .canvas-clay-frame {
+    min-height: 0;
+  }
+
+  .canvas-slider-container {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .slider-controls-bar {
+    flex-wrap: wrap;
+    border-radius: var(--radius-lg);
+  }
+
+  .range-input-styled {
+    min-width: 120px;
+  }
+
+  .chart-clay-wrap {
+    height: clamp(150px, 32vw, 190px);
+  }
+
+  .nativeChartCanvas,
+  #nativeChartCanvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .pair-sim {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --radius-xl: 24px;
+    --radius-lg: 20px;
+  }
+
+  .clay-app-container {
+    padding-inline: 0.75rem;
+  }
+
+  .clay-hero-card,
+  .clay-section-card {
+    padding: 1.25rem;
+  }
+
+  .clay-hero-title {
+    font-size: clamp(2.35rem, 14vw, 3.2rem);
+  }
+
+  .clay-hero-subtitle {
+    line-height: 1.45;
+  }
+
+  .clay-hero-pills {
+    width: 100%;
+  }
+
+  .clay-hero-pills .clay-pill-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .clay-3d-floating {
+    width: 58px;
+    height: 58px;
+    right: -8px;
+    top: -24px;
+  }
+
+  .clay-tab-header {
+    flex-wrap: wrap;
+  }
+
+  .clay-section-title {
+    font-size: 1.35rem;
+  }
+
+  .clay-tab-badge {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .clay-title-offset {
+    margin-left: 42px;
+  }
+
+  .clay-corner-3d {
+    width: 54px;
+    height: 54px;
+    top: -20px;
+  }
+
+  .filter-pills-wrap {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-pill {
+    justify-content: center;
+    min-width: 0;
+    padding-inline: 0.65rem;
+  }
+
+  .upload-action-row,
+  .upload-action-row .clay-pill-btn {
+    width: 100%;
+  }
+
+  .canvas-slider-container {
+    aspect-ratio: 4 / 3;
+  }
+
+  .canvas-badge {
+    top: 8px;
+    max-width: 48%;
+    text-align: center;
+  }
+
+  .canvas-badge.left {
+    left: 8px;
+  }
+
+  .canvas-badge.right {
+    right: 8px;
+  }
+
+  .slider-handle-pill {
+    width: 38px;
+    height: 38px;
+  }
+
+  .slider-controls-bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: 0.65rem;
+  }
+
+  .range-input-styled {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .split-buttons-group {
+    grid-column: 2;
+  }
+
+  .color-pickers-row,
+  .ratio-badges-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ratio-big-value {
+    font-size: clamp(2.45rem, 16vw, 3.2rem);
+  }
+
+  .pair-sim {
+    grid-template-columns: 1fr;
+  }
+
+  .pair-cell {
+    min-height: 64px;
+  }
+
+  .scripts-tabs-clay {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .script-tab-btn {
+    width: 100%;
+  }
+
+  .video-stage {
+    max-height: 62vh;
+  }
+
+  .clay-dock {
+    gap: 0.35rem;
+    padding: 0.45rem;
+  }
+
+  .dock-btn {
+    width: clamp(42px, 12vw, 48px);
+    height: clamp(42px, 12vw, 48px);
+  }
+
+  .dock-btn::after {
+    display: none;
+  }
+
+  .sfx-toggle {
+    top: max(8px, env(safe-area-inset-top));
+    right: 8px;
+    width: 40px;
+    height: 40px;
+  }
+
+  #musicToggle {
+    right: 54px;
+  }
+
+  .toast {
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    width: calc(100% - 1.5rem);
+    text-align: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .clay-app-container {
+    padding-inline: 0.5rem;
+  }
+
+  .clay-hero-card,
+  .clay-section-card,
+  .color-controls-box,
+  .ratio-display-box {
+    padding: 1rem;
+  }
+
+  .clay-section-title {
+    font-size: 1.18rem;
+  }
+
+  .clay-tab-badge {
+    font-size: 0.68rem;
+  }
+
+  .filter-pills-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .slider-controls-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .split-buttons-group {
+    grid-column: 1;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .clay-app-container {
+    padding-top: 0.75rem;
+  }
+
+  .clay-dock-wrap {
+    bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .mascot-wrap {
+    display: none;
+  }
+
+  .canvas-slider-container {
+    height: 58vh;
+    aspect-ratio: auto;
+  }
+
+  .video-stage {
+    max-height: 72vh;
+  }
+}
